@@ -50,6 +50,7 @@ def lyricsaz():
 	url=request.args.get('lyricsUrl')
 	page=requests.get(url)
 	soup = BeautifulSoup(page.text, "html.parser")
+	print(soup)
 	lyrics_tags = soup.find_all("div", attrs={"class": None, "id": None})
 	print("the length is ",len(lyrics_tags))
 	lyrics = [tag.getText() for tag in lyrics_tags]
@@ -75,18 +76,45 @@ def getSongInformation():
 		return lyrics
 	else:
 		return "Lyrics Could Not Be Found"
-	# allqueries=""
-	# for i in queries:
-	# 	allqueries+=i+"<br>"
-	# return allqueries
+
+@app.route("/detailsmode",methods=['GET','POST'])
+def getSongInformationFromLyricsMode():
+	track=request.args.get('track')
+	artist=request.args.get('artist')
+	print(track,artist)
+	query="lyricsmode "+track+" "+artist+" lyrics"
+	queries=[]
+	domainRegex="lyricsmode.com/lyrics"
+	for j in search(query, tld="com", num=5, stop=5, pause=2):
+		# print(j)
+		if domainRegex in j:
+			queries.append(j)
+   
+	lyrics=""
+	if len(queries)!=0:
+		lyrics=findLyricsMode(queries[0]) #queries[0] is the azlyrics url
+		return lyrics
+	else:
+		return "Lyrics Could Not Be Found"
+
 
 def findLyrics(url):
+	proxy={'http': 'http://170.82.6.153:33287'}
 	page=requests.get(url)
 	soup = BeautifulSoup(page.text, "html.parser")
+	# print(soup)
 	lyrics_tags = soup.find_all("div", attrs={"class": None, "id": None})
 	lyrics = [tag.getText() for tag in lyrics_tags]
 	print(lyrics)
 	return lyrics[0].replace("\n","<br>")
+
+def findLyricsMode(url):
+	print(url)
+	page=requests.get(url)
+	soup = BeautifulSoup(page.text, "html.parser")
+	lyricsDiv=soup.find("div",{"id":"lyrics_text"}).getText()
+	print(lyricsDiv)
+	return lyricsDiv.replace("\n","<br>")
     
 
 if __name__=="__main__":
